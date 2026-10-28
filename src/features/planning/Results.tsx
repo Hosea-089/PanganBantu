@@ -30,6 +30,7 @@ import { SourceNote } from '@/shared/ui/SourceNote';
 import { Stat } from '@/shared/ui/Stat';
 import { ArrowRight, Package, RefreshCw, ShoppingBasket, Users, Wallet } from 'lucide-react';
 import { useState } from 'react';
+import { RecipeAssistant } from './RecipeAssistant';
 import { DailyCostSummary } from './components/DailyCostSummary';
 
 export function Results() {
@@ -137,6 +138,7 @@ export function Results() {
         dipakai berurutan dari awal rencana; biaya harian dapat berbeda karena alokasi stok.
       </Note>
       <DailyCostSummary plan={plan} calc={c} />
+      <RecipeAssistant plan={plan} selectedDay={day} />
       <SourceNote />
     </>
   );

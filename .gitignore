@@ -6,3 +6,7 @@ dist/
 .vite-cache/
 test-results/
 playwright-report/
+.env
+.env.*
+!.env.example
+/docs/PERUBAHAN-FITUR.md

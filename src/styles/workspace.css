@@ -3153,3 +3153,28 @@ Gaya Workspace
     color: #345f50;
   }
 }
+.workspace-surface .recipe-assistant h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+.workspace-surface .recipe-assistant form {
+  display: grid;
+  gap: 12px;
+}
+.workspace-surface .recipe-assistant .field {
+  margin: 0;
+}
+.workspace-surface .recipe-assistant .btn {
+  justify-self: start;
+}
+.workspace-surface .recipe-assistant-answer {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid #d1e5cc;
+}
+.workspace-surface .recipe-assistant-answer h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}

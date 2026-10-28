@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
+    "api": "tsx server/index.ts",
     "build": "pnpm typecheck && vite build",
     "test": "tsx --test tests/*.test.ts",
     "typecheck": "tsc --noEmit",

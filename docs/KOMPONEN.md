@@ -110,6 +110,7 @@ Results
 ```
 
 File: `src/features/planning/Results.tsx`. Blok kecilnya di `components/DayTabs.tsx`, `MealCarousel.tsx`, `MealCard.tsx`, dan `DailyCostSummary.tsx`.
+Panel Tanya katalog resep berada di `src/features/planning/RecipeAssistant.tsx`; retrieval dan proxy LLM server-side ada di `server/assistant.ts`.
 
 ```text
 =============================
@@ -170,6 +171,7 @@ Komponen lintas fitur berada di `src/shared/ui/`: `Btn`, `Badge`, `Note`, `Stat`
 ## Struktur dan cara mengedit
 
 ```text
+server/                  # API server-side opsional untuk RAG resep dan proxy LLM
 src/
   app/                   # Komposisi provider dan pemilihan halaman
   features/
@@ -204,7 +206,7 @@ Stylesheet dimuat berurutan: `style.css` → `workspace.css` → `allianz.css` �
 - Sesi, dapur, draf perencanaan, dan dialog memakai konteks terpisah. Pencarian, filter, tab, carousel, menu ponsel, dan error formulir tetap lokal.
 - Biaya, ringkasan harian, stok terpakai, dan status pembelian dihitung dari data sumber. Draf preferensi merupakan isian yang belum disimpan, sehingga sengaja terpisah dari preferensi aktif.
 - Draf wizard dipakai beberapa halaman, termasuk ketika kembali dari hasil yang tidak layak. Draf tersebut berada di provider fitur perencanaan.
-- Aplikasi belum mempunyai API/backend. Seluruh data sekarang merupakan client state. Jika API ditambahkan, tempatkan akses API dalam layanan tersendiri dan gunakan TanStack Query untuk cache, mutasi, pembatalan, serta invalidasi server state. Jangan menyalin cache API ke konteks dapur.
+- Data akun, dapur, preferensi, dan rencana tetap berada di `localStorage`/client state. API opsional di `server/assistant.ts` hanya menerima pertanyaan dan mengambil maksimal tiga resep dari katalog lokal; tidak mengirim stok atau preferensi akun ke LLM. Endpoint server-state lain harus memakai layanan tersendiri dan tidak menyalin cache API ke konteks dapur.
 - `model.ts` mengekspor modul domain: `catalog.ts`, `calculations.ts`, `generate.ts`, dan `format.ts`. Perhitungan tidak membaca React, DOM, atau penyimpanan.
 - React `key` mengikuti identitas data: ID bahan/resep, nama pilihan, URL foto unik, dan tanggal. ESLint menolak `key` yang hilang atau berasal dari indeks array.
 - Belum ada `React.memo`, `useMemo`, atau `useCallback` karena belum ada pengukuran yang membuktikan kebutuhan. Pencarian menu dijalankan di Web Worker agar loop kombinasi tidak memblokir interaksi halaman.

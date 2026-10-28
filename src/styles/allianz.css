@@ -1156,6 +1156,9 @@ Gaya Halaman
   line-height: 1.5;
   border-left: 4px solid var(--fern);
 }
+.allianz-surface .recipe-assistant {
+  display: block;
+}
 .allianz-surface .info-box p {
   font-size: 14px;
 }

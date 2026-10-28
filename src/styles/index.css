@@ -1,0 +1,10 @@
+/*
+=============================
+Urutan Stylesheet
+--> Mempertahankan urutan cascade agar pemindahan komponen tidak mengubah tampilan.
+=============================
+*/
+@import './style.css';
+@import './workspace.css';
+@import './allianz.css';
+@import './accessibility.css';

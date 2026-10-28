@@ -1,6 +1,6 @@
 # PanganBantu
 
-Prototipe frontend React berbahasa Indonesia untuk perencanaan makan 1–7 hari. Data akun, stok, preferensi, rencana, dan cek belanja disimpan di localStorage. Tidak menggunakan backend atau layanan harga langsung.
+Prototipe frontend React dan TypeScript berbahasa Indonesia untuk perencanaan makan 1–7 hari. Data akun, stok, preferensi, rencana, dan cek belanja disimpan di localStorage dengan lingkup dapur per akun. Tidak menggunakan backend atau layanan harga langsung.
 
 ## Menjalankan
 
@@ -9,9 +9,29 @@ pnpm install
 pnpm dev
 ```
 
-Build: `pnpm build`. Pemeriksaan perhitungan: `pnpm test`.
+Memerlukan Node.js 22.12+ dan pnpm 10+. Build: `pnpm build`. Pemeriksaan lengkap: `pnpm check`. Uji browser desktop/ponsel: `pnpm test:e2e` (Microsoft Edge).
 
-Pilih **Jelajahi demo** untuk rencana contoh, atau daftar dengan data fiktif untuk memulai dari kondisi kosong. Kata sandi simulasi disimpan sebagai hash SHA-256 lokal; ini bukan autentikasi produksi. Data dapur pada prototipe merupakan data lokal per peramban.
+Pilih **Jelajahi demo** untuk rencana contoh, atau daftar dengan data fiktif untuk memulai dari kondisi kosong. Kredensial baru memakai PBKDF2 SHA-256 dengan salt acak; hash lama dimigrasikan setelah login berhasil. Ini akun simulasi lokal, bukan autentikasi produksi. Gunakan kata sandi contoh.
+
+## Mengubah komponen
+
+Lihat [panduan komponen dan arsitektur](docs/KOMPONEN.md) untuk lokasi setiap bagian halaman, pembagian state, stylesheet, dan pemeriksaan kode. Sumber telah dipisahkan berdasarkan fitur; halaman/dialog memakai lazy loading dan pencarian menu berjalan di Web Worker.
+
+```sh
+pnpm blocks                 # Semua blok komponen dan penjelasannya
+pnpm blocks Navbar          # Cari navigasi beranda dan aplikasi
+pnpm blocks MealCard        # Cari kartu menu
+pnpm blocks planning        # Cari modul fitur perencanaan
+```
+
+Komentar blok menggunakan format:
+
+```text
+=============================
+Navbar
+--> Navigasi beranda, pengumuman, menu ponsel, dan akses masuk atau daftar.
+=============================
+```
 
 ## Perhitungan
 

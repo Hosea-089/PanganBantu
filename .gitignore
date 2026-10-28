@@ -3,4 +3,6 @@ node_modules/
 dist/
 *.tar.gz
 .sites/
-qa/
+.vite-cache/
+test-results/
+playwright-report/

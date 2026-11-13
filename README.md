@@ -13,12 +13,11 @@ Memerlukan Node.js 22.12+ dan pnpm 10+. Build: `pnpm build`. Pemeriksaan lengkap
 
 Pilih **Jelajahi demo** untuk rencana contoh, atau daftar dengan data fiktif untuk memulai dari kondisi kosong. Kredensial baru memakai PBKDF2 SHA-256 dengan salt acak; hash lama dimigrasikan setelah login berhasil. Ini akun simulasi lokal, bukan autentikasi produksi. Gunakan kata sandi contoh.
 
+## Asisten kuliner (opsional)
 
-## Asisten resep (opsional)
+Asisten menjawab pertanyaan kuliner umum, bukan hanya pertanyaan tentang bahan: teknik memasak, penyimpanan atau penggantian bahan, serta menu dan jadwal rencana. Retrieval kata kunci memilih maksimal tiga resep katalog saat relevan; data resep dan rencana menjadi sumber fakta, sedangkan pertanyaan kuliner umum dapat memakai pengetahuan umum model. Pertanyaan, resep konteks, dan jadwal rencana dikirim ke provider LLM.
 
-Asisten menjawab pertanyaan resep dengan RAG ringan: pencarian kata kunci memilih maksimal tiga resep dari katalog lokal. Pada halaman hasil, menu terjadwal, tanggal, jumlah porsi, dan hari yang sedang dipilih juga menjadi konteks jawaban. Pertanyaan, resep konteks, dan jadwal rencana dikirim ke provider LLM.
-
-Stok dapur, preferensi, dan anggaran tidak dikirim. Asisten tidak memvalidasi alergi, harga, atau gizi; perhitungan planner tetap sumber kebenaran. Tidak memakai embeddings atau vector DB.
+Stok, preferensi, dan anggaran tidak dikirim. Asisten tidak menilai alergi atau kondisi medis, memberi klaim gizi, atau menghitung harga. Tidak memakai embeddings atau vector DB.
 
 Salin `.env.example` menjadi `.env` (`Copy-Item .env.example .env` pada PowerShell), lalu isi `LLM_API_URL`, `LLM_API_KEY`, dan `LLM_MODEL` (default `gpt-6-luna`). Simpan API key di `.env` server, bukan di variabel `VITE_*` atau kode frontend. Jalankan dua terminal:
 

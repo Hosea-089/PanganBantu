@@ -110,7 +110,7 @@ Results
 ```
 
 File: `src/features/planning/Results.tsx`. Blok kecilnya di `components/DayTabs.tsx`, `MealCarousel.tsx`, `MealCard.tsx`, dan `DailyCostSummary.tsx`.
-Panel Tanya katalog resep berada di `src/features/planning/RecipeAssistant.tsx`; retrieval dan proxy LLM server-side ada di `server/assistant.ts`.
+Panel Tanya tentang masakan berada di `src/features/planning/RecipeAssistant.tsx`; retrieval dan proxy LLM server-side ada di `server/assistant.ts`.
 
 ```text
 =============================

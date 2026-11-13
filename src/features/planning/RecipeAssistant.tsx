@@ -95,21 +95,21 @@ export function RecipeAssistant({ plan, selectedDay }: { plan: Plan; selectedDay
   return (
     <section className="info-box recipe-assistant" aria-labelledby="recipe-assistant-title">
       <h2 id="recipe-assistant-title">
-        <MessageCircle size={18} aria-hidden="true" /> Tanya katalog resep
+        <MessageCircle size={18} aria-hidden="true" /> Tanya tentang masakan
       </h2>
       <p>
-        Jawaban memakai katalog resep dan rencana makan aktif. Asisten tidak memeriksa alergi,
-        menghitung harga, atau memberi nasihat gizi.
+        Jawaban mencakup resep, teknik memasak, penyimpanan bahan, variasi, dan rencana aktif.
+        Asisten tidak memberi kepastian alergi, nasihat medis/gizi, atau harga.
       </p>
       <form onSubmit={ask}>
         <label className="field">
-          <span>Pertanyaan tentang resep</span>
+          <span>Pertanyaan tentang masakan atau rencana</span>
           <input
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
             maxLength={300}
             required
-            placeholder="Contoh: Menu makan siang hari kedua apa?"
+            placeholder="Contoh: Apa bedanya mengukus dan merebus?"
           />
           <small>
             Maksimal 300 karakter. Pertanyaan dan menu rencana dikirim ke layanan LLM yang
@@ -117,10 +117,12 @@ export function RecipeAssistant({ plan, selectedDay }: { plan: Plan; selectedDay
           </small>
         </label>
         <Btn type="submit" disabled={loading || !question.trim()}>
-          <Send size={15} aria-hidden="true" /> {loading ? 'Menjawab…' : 'Tanya resep'}
+          <Send size={15} aria-hidden="true" /> {loading ? 'Menjawab…' : 'Tanya asisten'}
         </Btn>
       </form>
-      {loading && <p role="status">Asisten sedang mencari resep yang relevan…</p>}
+      {loading && (
+        <p role="status">Asisten menyusun jawaban; proses dapat memerlukan hingga satu menit…</p>
+      )}
       {error && <p role="alert">{error}</p>}
       {reply && (
         <div className="recipe-assistant-answer" aria-live="polite">

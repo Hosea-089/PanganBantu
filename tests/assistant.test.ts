@@ -110,49 +110,91 @@ test('API validates method, content type, body size, question length and plan co
   });
 });
 
-test('unmatched questions stay local and do not require or call an LLM', async () => {
-  await withServer(apiServer(), async (baseUrl) => {
-    const response = await postQuestion(baseUrl, 'Apa resep memakai bahan yang tidak ada?');
-    assert.equal(response.status, 200);
-    assert.deepEqual(await response.json(), {
-      answer: 'Belum menemukan resep yang cocok. Sebutkan bahan, misalnya telur, tahu, atau tempe.',
-      sources: [],
-    });
+test('general cooking questions without catalog matches reach the provider', async () => {
+  const provider = createHttpServer((_request, response) => {
+    response.writeHead(200, { 'content-type': 'application/json' }).end(
+      JSON.stringify({
+        choices: [{ message: { content: 'Mengukus memakai uap; merebus memakai air mendidih.' } }],
+      }),
+    );
+  });
+  const question = 'Apa bedanya teknik mengukus dan merebus?';
+  assert.equal(retrieveRecipes(question).length, 0);
+
+  await withServer(provider, async (providerUrl) => {
+    await withServer(
+      apiServer({
+        apiUrl: `${providerUrl}/chat/completions`,
+        apiKey: 'test-only-secret',
+        model: 'test-model',
+      }),
+      async (baseUrl) => {
+        const response = await postQuestion(baseUrl, question);
+        assert.equal(response.status, 200);
+        assert.deepEqual(await response.json(), {
+          answer: 'Mengukus memakai uap; merebus memakai air mendidih.',
+          sources: [],
+        });
+      },
+    );
   });
 });
 
-test('plan-only questions reach provider path when valid plan is present', async () => {
-  await withServer(apiServer(), async (baseUrl) => {
-    const question = 'Menu makan siang hari kedua apa?';
-    const plan = {
-      start: '2026-10-29',
-      days: 2,
-      people: 4,
-      selectedDay: 0,
-      menu: [
-        ['nasi-telur', 'tahu', 'ayam'],
-        ['bubur-sayur', 'sup-telur', 'tempe-bayam'],
-      ],
-    };
-    const noPlan = await postQuestion(baseUrl, question);
-    assert.equal(noPlan.status, 200);
-    assert.match((await noPlan.json()).answer, /Belum menemukan resep/);
-    const withPlan = await postQuestion(baseUrl, question, plan);
-    assert.equal(withPlan.status, 503);
-    assert.deepEqual(await withPlan.json(), {
-      error: 'Asisten AI belum dikonfigurasi di server.',
-    });
+test('plan questions use validated meal context', async () => {
+  const provider = createHttpServer(async (request, response) => {
+    let raw = '';
+    for await (const chunk of request) raw += chunk;
+    const payload = JSON.parse(raw) as ProviderRequest;
+    const developer = payload.messages.find(({ role }) => role === 'developer')?.content ?? '';
+    const answer = developer.includes('Sup Telur Sayuran & Nasi')
+      ? 'Makan siang hari kedua: Sup Telur Sayuran & Nasi.'
+      : 'Konteks rencana pribadi tidak tersedia.';
+    const result: ProviderReply = { choices: [{ message: { content: answer } }] };
+    response.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(result));
+  });
+  const question = 'Menu makan siang hari kedua apa?';
+  const plan = {
+    start: '2026-10-29',
+    days: 2,
+    people: 4,
+    selectedDay: 0,
+    menu: [
+      ['nasi-telur', 'tahu', 'ayam'],
+      ['bubur-sayur', 'sup-telur', 'tempe-bayam'],
+    ],
+  };
+
+  await withServer(provider, async (providerUrl) => {
+    await withServer(
+      apiServer({
+        apiUrl: `${providerUrl}/chat/completions`,
+        apiKey: 'test-key',
+        model: 'test-model',
+      }),
+      async (baseUrl) => {
+        const withoutPlan = await postQuestion(baseUrl, question);
+        assert.equal(withoutPlan.status, 200);
+        assert.equal((await withoutPlan.json()).answer, 'Konteks rencana pribadi tidak tersedia.');
+
+        const withPlan = await postQuestion(baseUrl, question, plan);
+        assert.equal(withPlan.status, 200);
+        assert.equal(
+          (await withPlan.json()).answer,
+          'Makan siang hari kedua: Sup Telur Sayuran & Nasi.',
+        );
+      },
+    );
   });
 });
 
-test('health, diet and price questions are refused without calling an LLM', async () => {
+test('allergy and price questions are refused without calling an LLM', async () => {
   await withServer(apiServer(), async (baseUrl) => {
     for (const question of ['Apakah resep telur aman untuk alergi?', 'Berapa harga nasi telur?']) {
       const response = await postQuestion(baseUrl, question);
       assert.equal(response.status, 200);
       assert.deepEqual(await response.json(), {
         answer:
-          'Asisten ini hanya membantu memahami resep katalog. Asisten tidak menilai alergi, gizi, atau harga; periksa label bahan dan gunakan kalkulasi aplikasi.',
+          'Asisten membantu resep, teknik memasak, dan rencana makan. Asisten tidak menilai alergi atau kondisi medis, memberi klaim gizi, atau menghitung harga.',
         sources: [],
       });
     }

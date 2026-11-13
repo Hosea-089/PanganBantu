@@ -12,6 +12,7 @@ import { Dialog } from '@/shared/ui/Dialog';
 import { useFeedback } from '@/shared/ui/feedback';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { defaultForm } from './model';
+import { getCatalog } from './catalog';
 import { PlanningContext } from './planning';
 import type { GenerationResult, Plan, PlanForm } from './types';
 
@@ -82,7 +83,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
         finish();
         notify('Rencana belum dapat dihitung. Silakan coba lagi.');
       };
-      job.postMessage({ form, stock, prefs });
+      job.postMessage({ form, stock, prefs, catalog: getCatalog() });
     } catch {
       setBusy(false);
       worker.current = null;

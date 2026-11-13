@@ -27,7 +27,7 @@ export function WorkspaceBreadcrumb({ currentLabel }: { currentLabel: string }) 
           year: 'numeric',
           timeZone: 'Asia/Jakarta',
         })}
-        <Badge>Simulasi</Badge>
+        <Badge>Estimasi</Badge>
       </span>
     </div>
   );

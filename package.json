@@ -6,15 +6,19 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "api": "tsx server/index.ts",
+    "db:migrate": "python -m alembic upgrade head",
+    "db:seed": "python -m backend.seed",
+    "backend:dev": "pnpm db:migrate && pnpm db:seed && python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000",
     "build": "pnpm typecheck && vite build",
     "test": "tsx --test tests/*.test.ts",
+    "test:backend": "python -m pytest backend/test_api.py",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:e2e": "pnpm build && playwright test",
-    "check": "pnpm lint && pnpm format:check && pnpm test && pnpm build",
+    "check": "pnpm lint && pnpm format:check && pnpm test && pnpm test:backend && pnpm build",
     "blocks": "node scripts/blocks.mjs"
   },
   "dependencies": {

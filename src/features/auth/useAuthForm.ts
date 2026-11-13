@@ -1,17 +1,34 @@
 /*
 =============================
 useAuthForm
---> Mengelola isian akun, pendaftaran, verifikasi, dan migrasi kredensial lama.
+--> Mengirim kredensial ke API akun dan membuka sesi bertoken.
 =============================
 */
 
 import { go } from '@/app/navigation';
-import { read, write } from '@/shared/storage/storage';
-import { isAccounts } from '@/shared/storage/validators';
+import { api, setApiToken } from '@/shared/api';
+import type { User } from './types';
 import { useFeedback } from '@/shared/ui/feedback';
+import { isRecord } from '@/shared/typeguards';
+import { isUser } from '@/shared/storage/validators';
 import { useState, type FormEvent } from 'react';
-import { createCredentials, verifyPassword } from './password';
 import { useSession } from './session';
+
+interface AuthReply {
+  access_token: string;
+  token_type: 'bearer';
+  user: User;
+}
+
+function isAuthReply(value: unknown): value is AuthReply {
+  return (
+    isRecord(value) &&
+    typeof value.access_token === 'string' &&
+    value.access_token.length > 0 &&
+    value.token_type === 'bearer' &&
+    isUser(value.user)
+  );
+}
 
 export function useAuthForm(register: boolean) {
   const { setUser } = useSession();
@@ -38,57 +55,26 @@ export function useAuthForm(register: boolean) {
       setError('Format email belum benar. Contoh: nama@email.com');
       return;
     }
-    if (password.length < 6) {
-      setError('Kata sandi harus berisi minimal 6 karakter.');
+    if (password.length < 8) {
+      setError('Kata sandi harus berisi minimal 8 karakter.');
       return;
     }
     setLoading(true);
     try {
-      const accounts = read('accounts', [], isAccounts);
-      const identity = email.trim().toLowerCase();
-      if (register) {
-        if (
-          accounts.some(
-            (a) =>
-              a.email.toLowerCase() === identity ||
-              a.name.toLowerCase() === name.trim().toLowerCase(),
-          )
-        ) {
-          setError('Email atau nama pengguna sudah terdaftar di perangkat ini. Silakan masuk.');
-          return;
-        }
-        const credentials = await createCredentials(password);
-        const account = { name: name.trim(), email: identity, ...credentials };
-        if (!write('accounts', [...accounts, account]))
-          throw new Error('Penyimpanan tidak tersedia.');
-        setUser({ name: account.name, email: account.email });
-        notify('Akun simulasi berhasil dibuat. Selamat datang!');
-      } else {
-        const account = accounts.find(
-          (a) => a.email.toLowerCase() === identity || a.name.toLowerCase() === identity,
-        );
-        if (!account || !(await verifyPassword(password, account))) {
-          setError(
-            'Nama pengguna/email atau kata sandi tidak cocok. Daftar dahulu atau gunakan akun demo.',
-          );
-          return;
-        }
-        if (!account.salt) {
-          const credentials = await createCredentials(password);
-          if (
-            !write(
-              'accounts',
-              accounts.map((a) => (a === account ? { ...a, ...credentials } : a)),
-            )
-          )
-            throw new Error('Penyimpanan tidak tersedia.');
-        }
-        setUser({ name: account.name, email: account.email });
-        notify('Berhasil masuk. Selamat datang kembali!');
-      }
+      const payload = register
+        ? { name: name.trim(), email: email.trim().toLowerCase(), password }
+        : { identifier: email.trim(), password };
+      const reply: unknown = await api(register ? '/api/auth/register' : '/api/auth/login', {
+        method: 'POST',
+        body: payload,
+      });
+      if (!isAuthReply(reply)) throw new Error('Balasan autentikasi server tidak valid.');
+      setApiToken(reply.access_token);
+      setUser(reply.user);
+      notify(register ? 'Akun berhasil dibuat. Selamat datang!' : 'Berhasil masuk. Selamat datang kembali!');
       go('/dashboard');
-    } catch {
-      setError('Akun belum dapat disimpan. Coba gunakan demo atau aktifkan penyimpanan peramban.');
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : 'Akun belum dapat diproses.');
     } finally {
       setLoading(false);
     }

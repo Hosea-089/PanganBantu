@@ -8,9 +8,9 @@ validators
 import type { Account, User } from '@/features/auth/types';
 import { ingredients, recipes } from '@/features/planning/catalog';
 import type { Plan, PlanForm, Preferences, ShoppingChecks, Stock } from '@/features/planning/types';
+import { isRecord } from '../typeguards';
+export { isRecord };
 
-export const isRecord = (v: unknown): v is Record<string, unknown> =>
-  typeof v === 'object' && v !== null && !Array.isArray(v);
 
 const knownIngredient = (id: string) => Object.hasOwn(ingredients, id);
 const finiteNonnegative = (v: unknown): v is number =>

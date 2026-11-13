@@ -1,77 +1,73 @@
 # PanganBantu
 
-Prototipe frontend React dan TypeScript berbahasa Indonesia untuk perencanaan makan 1–7 hari. Data akun, stok, preferensi, rencana, dan cek belanja disimpan di `localStorage` per akun. Asisten resep memakai API server-side opsional; tidak ada layanan harga langsung.
+Prototipe React/TypeScript dengan FastAPI, SQLAlchemy, dan Alembic. Akun, stok, preferensi, rencana, dan cek belanja akun disimpan di database per pengguna; mode demo tetap lokal. Katalog bahan, resep, harga referensi, dan nutrisi dibaca dari database. Tidak ada harga toko waktu nyata.
 
 ## Menjalankan
 
+Memerlukan Node.js 22.12+, pnpm 10+, dan Python 3.10+.
+
 ```sh
 pnpm install
+python -m pip install -r requirements.txt
+```
+
+Salin `.env.example` ke `.env` bila belum ada. Terminal pertama menjalankan migrasi, seed, dan API:
+
+```sh
+pnpm backend:dev
+```
+
+Terminal kedua menjalankan antarmuka:
+
+```sh
 pnpm dev
 ```
 
-Memerlukan Node.js 22.12+ dan pnpm 10+. Build: `pnpm build`. Pemeriksaan lengkap: `pnpm check`. Uji browser desktop/ponsel: `pnpm test:e2e` (Microsoft Edge).
+Database lokal memakai SQLite. Untuk MySQL, atur `DATABASE_URL` ke `mysql+pymysql://user:password@host:3306/panganbantu`, lalu jalankan `pnpm db:migrate` dan `pnpm db:seed`. Jangan pakai kredensial produksi untuk demo.
 
-Pilih **Jelajahi demo** untuk rencana contoh, atau daftar dengan data fiktif untuk memulai dari kondisi kosong. Kredensial baru memakai PBKDF2 SHA-256 dengan salt acak; hash lama dimigrasikan setelah login berhasil. Ini akun simulasi lokal, bukan autentikasi produksi. Gunakan kata sandi contoh.
+Build: `pnpm build`. Pemeriksaan lengkap: `pnpm check` (frontend dan backend). Uji backend: `pnpm test:backend`. Uji browser desktop/ponsel: `pnpm test:e2e` (Microsoft Edge; Playwright menyiapkan SQLite terpisah).
+
+Pilih **Jelajahi demo** untuk rencana lokal, atau daftar memakai email fiktif dan kata sandi minimal 8 karakter. Akun terdaftar memakai sesi JWT dan dapur tersimpan di backend per akun. Prototipe belum disiapkan untuk deployment: gunakan HTTPS, secret JWT yang kuat, dan kontrol operasional produksi.
+
+## Backend dan katalog
+
+`GET /api/v1/catalog` menyajikan data publik. `GET/PUT /api/v1/me/kitchen` dan `GET/PATCH /api/auth/me` memerlukan token Bearer serta membatasi data ke pemilik token. Migrasi berada di `migrations/`; `backend.seed` hanya menambahkan data contoh yang belum ada agar perubahan database tetap terjaga.
+
+Katalog memakai ID bahan tetap dari database. Harga minimum/maksimum dihitung dari harga BPS 2025 dan konversi per satuan; API menyertakan kuantitas/satuan referensi, sumber, wilayah, periode observasi, tanggal pembaruan, serta sumber dan faktor konversi. Nutrisi bahan memakai TKPI 2020 dan BDD; nutrisi resep dihitung per porsi. Bahan tanpa harga positif, konversi, nutrisi, atau provenance lengkap—serta resep yang merujuk bahan tersebut—tidak masuk katalog optimizer. Perubahan katalog di database tidak mengubah algoritme Web Worker.
 
 ## Asisten kuliner (opsional)
 
-Asisten menjawab pertanyaan kuliner umum, bukan hanya pertanyaan tentang bahan: teknik memasak, penyimpanan atau penggantian bahan, serta menu dan jadwal rencana. Retrieval kata kunci memilih maksimal tiga resep katalog saat relevan; data resep dan rencana menjadi sumber fakta, sedangkan pertanyaan kuliner umum dapat memakai pengetahuan umum model. Pertanyaan, resep konteks, dan jadwal rencana dikirim ke provider LLM.
+Asisten menjawab pertanyaan resep, teknik memasak, penyimpanan/penggantian bahan, serta rencana aktif. Retrieval memakai maksimal tiga resep katalog yang dimuat dari API database saat server dimulai. Pertanyaan, konteks resep, dan jadwal rencana dikirim ke provider LLM; jangan kirim informasi kesehatan atau data sensitif.
 
-Stok, preferensi, dan anggaran tidak dikirim. Asisten tidak menilai alergi atau kondisi medis, memberi klaim gizi, atau menghitung harga. Tidak memakai embeddings atau vector DB.
+Isi `LLM_API_URL`, `LLM_API_KEY`, dan `LLM_MODEL` di `.env`, lalu jalankan `pnpm api` setelah backend siap. Vite meneruskan `/api/assistant/recipes` ke `127.0.0.1:8787`. API dapat berjalan tanpa key, tetapi jawaban yang memerlukan model akan gagal dengan pesan konfigurasi. Kunci LLM hanya berada di server. Mulai ulang assistant setelah katalog berubah.
 
-Salin `.env.example` menjadi `.env` (`Copy-Item .env.example .env` pada PowerShell), lalu isi `LLM_API_URL`, `LLM_API_KEY`, dan `LLM_MODEL` (default `gpt-6-luna`). Simpan API key di `.env` server, bukan di variabel `VITE_*` atau kode frontend. Jalankan dua terminal:
-
-Terminal 1:
-
-```sh
-pnpm api
-```
-
-Terminal 2:
-
-```sh
-pnpm dev
-```
-
-Vite meneruskan `/api/assistant/recipes` ke API lokal di `127.0.0.1:8787`. API server dapat berjalan tanpa key, tetapi pertanyaan dengan resep cocok akan membalas bahwa AI belum dikonfigurasi. Untuk deploy, jalankan server API dan reverse-proxy rute `/api/` kepadanya; build frontend statis saja tidak menyediakan backend.
-
-API server default hanya bind ke `127.0.0.1` dan belum punya autentikasi pengguna. Jangan ekspos endpoint ke internet tanpa autentikasi serta rate limiter bersama lintas proses.
-
-Asisten tampil di halaman **Rencana Makan**. Pertanyaan maksimal 300 karakter; API membatasi 10 permintaan per menit berdasarkan alamat yang terlihat oleh proses API. Retrieval memakai pencocokan kata terhadap resep lokal dan menambahkan menu pada rencana aktif sebagai konteks.
+Stok, preferensi, dan anggaran tidak dikirim ke provider. Asisten tidak menilai alergi/kondisi medis, memberi klaim gizi, atau menghitung harga. Pembatas permintaan saat ini berlaku per alamat pada satu proses.
 
 ## Mengubah komponen
 
-Lihat [panduan komponen dan arsitektur](docs/KOMPONEN.md) untuk lokasi setiap bagian halaman, pembagian state, stylesheet, dan pemeriksaan kode. Sumber telah dipisahkan berdasarkan fitur; halaman/dialog memakai lazy loading dan pencarian menu berjalan di Web Worker.
+Lihat [panduan komponen dan arsitektur](docs/KOMPONEN.md). Halaman/dialog memakai lazy loading; pencarian menu dan optimizer berjalan di Web Worker.
 
 ```sh
-pnpm blocks                 # Semua blok komponen dan penjelasannya
-pnpm blocks Navbar          # Cari navigasi beranda dan aplikasi
-pnpm blocks MealCard        # Cari kartu menu
-pnpm blocks planning        # Cari modul fitur perencanaan
-```
-
-Komentar blok menggunakan format:
-
-```text
-=============================
-Navbar
---> Navigasi beranda, pengumuman, menu ponsel, dan akses masuk atau daftar.
-=============================
+pnpm blocks                 # Semua blok komponen
+pnpm blocks Navbar          # Navigasi beranda dan aplikasi
+pnpm blocks MealCard        # Kartu menu
+pnpm blocks planning        # Modul perencanaan
 ```
 
 ## Perhitungan
 
-- Semua kuantitas resep adalah per porsi, dengan beras dalam berat mentah.
-- Stok dialokasikan sekali, secara kronologis. Kebutuhan belanja adalah maksimum dari nol dan selisih kebutuhan dengan stok.
-- Harga per gram/ml/butir memiliki batas minimum dan maksimum tetap. Biaya makanan, ringkasan harian, dan daftar belanja memakai hasil perhitungan yang sama.
-- Kecukupan anggaran ditentukan oleh batas atas estimasi.
-- Alternatif termurah diperoleh lewat enumerasi distribusi jumlah resep per waktu makan, sehingga dapat memperhitungkan stok bersama. Ruang pencarian hanya katalog sembilan resep fiktif, bukan seluruh makanan Indonesia.
-- Favorit merupakan preferensi lunak. Bahan dihindari, pola makan, dan alergi merupakan pengecualian wajib.
-- Membeli bahan pada daftar hanya mengubah centang, tidak mengubah stok atau total kebutuhan.
+- Kuantitas resep tersimpan per porsi dan diskalakan sesuai jumlah orang.
+- Stok dialokasikan sekali secara kronologis; hanya kekurangan masuk daftar belanja dan biaya.
+- Harga memakai rentang per satuan; batas atas menentukan kelayakan anggaran.
+- Alternatif termurah dienumerasi berdasarkan distribusi resep per waktu makan, termasuk pemakaian stok bersama. Katalog demo memuat enam resep, bukan seluruh makanan Indonesia.
+- Pantangan, pola makan, dan alergi wajib dikecualikan; favorit hanya preferensi lunak.
+- Centang belanja tidak mengubah stok atau kebutuhan. Pembelian aktual tidak tersedia.
 
-## Sumber foto
+## Sumber data dan foto
 
-Foto hanya ilustrasi penyajian; resep, kandungan gizi, serta harga di aplikasi adalah data simulasi sendiri. Pelengkap dalam foto tidak termasuk resep atau perhitungan.
+Harga memakai *Statistik Harga Konsumen Perdesaan Kelompok Makanan 2025*, BPS, Publikasi 06200.26006, tabel 1.1, 1.41, 1.50, 1.51, 1.53, 1.65, 1.82, dan 1.83: [publikasi BPS](https://www.bps.go.id/id/publication/2026/04/24/bf06c6b8d3adfdefce0a9032/statistik-harga-konsumen-perdesaan-kelompok-makanan-2025.html). Nutrisi mengacu pada TKPI 2020, Kementerian Kesehatan RI: [katalog resmi](https://repository.kemkes.go.id/book/668). Konversi telur dan BDD disimpan bersama provenance API. Harga adalah estimasi agregat, bukan harga aktual toko.
+
+Foto hanya ilustrasi; pelengkap foto tidak selalu termasuk komposisi resep. Tinjau lisensi sebelum penggunaan komersial.
 
 - Nasi goreng: https://pupswithchopsticks.com/nasi-goreng-indonesian-fried-rice/
 - Soto: https://www.orami.co.id/tools/resep/resep-soto-ayam-bumbu-kuning
@@ -81,5 +77,3 @@ Foto hanya ilustrasi penyajian; resep, kandungan gizi, serta harga di aplikasi a
 - Sup sayur: https://cookpad.com/id/resep/13177509 (Oci)
 - Nasi tempe: https://toasttohome.com/tempeh-recipe/
 - Bubur sayur: https://aromaresepmasakan.blogspot.com/2021/07/29-resep-bubur-nasi-campur-sayur.html (foto Cookpad)
-
-Tanggal data simulasi: 12 Oktober 2026. Foto digunakan sebagai referensi visual prototipe; tinjau lisensi sebelum penggunaan komersial.

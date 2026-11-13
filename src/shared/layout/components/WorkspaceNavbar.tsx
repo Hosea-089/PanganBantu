@@ -26,7 +26,7 @@ export function WorkspaceNavbar({ route }: { route: string }) {
   const logout = () => {
     setUser(null);
     go('/masuk');
-    notify('Anda sudah keluar dari akun simulasi.');
+    notify('Anda sudah keluar dari akun.');
   };
   return (
     <header className="workspace-header">
@@ -46,7 +46,7 @@ export function WorkspaceNavbar({ route }: { route: string }) {
             <User size={20} strokeWidth={1.5} />
             <span>
               <strong>{user.name.split(' ')[0]}</strong>
-              <small>Akun {user.demo ? 'demo' : 'simulasi'}</small>
+              <small>{user.demo ? 'Akun demo lokal' : 'Akun terdaftar'}</small>
             </span>
           </a>
           <Btn variant="outline" onClick={startPlan}>

@@ -62,7 +62,7 @@ export function AuthForm({ register }: { register: boolean }) {
             type={show ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Minimal 6 karakter"
+            placeholder="Minimal 8 karakter"
             autoComplete={register ? 'new-password' : 'current-password'}
           />
           <button
@@ -93,8 +93,7 @@ export function AuthForm({ register }: { register: boolean }) {
         <a href={register ? '#/masuk' : '#/daftar'}>{register ? 'Masuk' : 'Daftar gratis'}</a>
       </div>
       <Note>
-        Ini akun simulasi. Gunakan kata sandi contoh. Data disimpan di peramban ini, bukan layanan
-        akun sungguhan.
+        Akun terdaftar disimpan di backend. Mode demo memakai data lokal peramban.
       </Note>
     </form>
   );

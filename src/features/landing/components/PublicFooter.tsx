@@ -12,7 +12,7 @@ export function PublicFooter() {
     <footer className="public-footer">
       <Logo />
       <span>© 2026 PanganBantu. Dari rencana, jadi hidangan.</span>
-      <span>Prototipe interaktif · Data simulasi</span>
+      <span>Prototipe interaktif · Data referensi</span>
     </footer>
   );
 }

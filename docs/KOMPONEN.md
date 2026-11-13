@@ -71,7 +71,7 @@ AuthForm
 =============================
 ```
 
-File: `src/features/auth/components/AuthForm.tsx`. Logika akun di `src/features/auth/useAuthForm.ts`; kredensial simulasi di `password.ts`.
+File: `src/features/auth/components/AuthForm.tsx`. Formulir memanggil API akun melalui `src/features/auth/useAuthForm.ts`; mode demo tetap lokal.
 
 ```text
 =============================
@@ -171,23 +171,26 @@ Komponen lintas fitur berada di `src/shared/ui/`: `Btn`, `Badge`, `Note`, `Stat`
 ## Struktur dan cara mengedit
 
 ```text
-server/                  # API server-side opsional untuk RAG resep dan proxy LLM
+backend/                  # FastAPI, skema SQLAlchemy, autentikasi, dan seed
+migrations/               # Migrasi Alembic
+server/                   # Node assistant API dan retrieval katalog
 src/
-  app/                   # Komposisi provider dan pemilihan halaman
+  app/                    # Komposisi provider dan pemilihan halaman
   features/
-    auth/                # Sesi dan akun simulasi
-    dashboard/           # Halaman Dapur Saya
-    landing/             # Beranda
-    planning/            # Wizard, hasil, resep, kalkulasi, worker, dan tipe
-    pantry/              # Stok dan penyimpanan dapur per akun
-    preferences/         # Editor preferensi dan draf
-    grocery/             # Daftar belanja
-    profile/             # Profil
+    auth/                 # Sesi bertoken dan mode demo
+    dashboard/            # Halaman Dapur Saya
+    landing/              # Beranda
+    planning/             # Wizard, hasil, resep, kalkulasi, worker, dan tipe
+    pantry/               # Stok demo lokal atau dapur akun dari backend
+    preferences/          # Editor preferensi dan draf
+    grocery/              # Daftar belanja
+    profile/              # Profil
   shared/
-    layout/              # Kerangka, navigasi, header, dan footer bersama
-    storage/             # Validasi, penyimpanan, dan migrasi data
-    ui/                  # Komponen UI lintas fitur
-  styles/                # Lapisan gaya bersama
+    api.ts                # Klien API Bearer
+    layout/               # Kerangka, navigasi, header, dan footer
+    storage/              # Validasi dan penyimpanan demo lokal
+    ui/                   # Komponen UI lintas fitur
+  styles/                 # Lapisan gaya bersama
 ```
 
 1. Cari blok dengan `pnpm blocks NamaBlok`, lalu buka file yang ditampilkan.
@@ -206,7 +209,7 @@ Stylesheet dimuat berurutan: `style.css` → `workspace.css` → `allianz.css` �
 - Sesi, dapur, draf perencanaan, dan dialog memakai konteks terpisah. Pencarian, filter, tab, carousel, menu ponsel, dan error formulir tetap lokal.
 - Biaya, ringkasan harian, stok terpakai, dan status pembelian dihitung dari data sumber. Draf preferensi merupakan isian yang belum disimpan, sehingga sengaja terpisah dari preferensi aktif.
 - Draf wizard dipakai beberapa halaman, termasuk ketika kembali dari hasil yang tidak layak. Draf tersebut berada di provider fitur perencanaan.
-- Data akun, dapur, preferensi, dan rencana tetap berada di `localStorage`/client state. API opsional di `server/assistant.ts` hanya menerima pertanyaan dan mengambil maksimal tiga resep dari katalog lokal; tidak mengirim stok atau preferensi akun ke LLM. Endpoint server-state lain harus memakai layanan tersendiri dan tidak menyalin cache API ke konteks dapur.
+- Akun terdaftar memakai token API; profil dan dapur akun dibaca/disimpan di backend per pemilik. Mode demo tetap memakai `localStorage`. Katalog publik berasal dari database; Node assistant mengambil katalog itu saat startup dan tidak membaca dapur akun dari database.
 - `model.ts` mengekspor modul domain: `catalog.ts`, `calculations.ts`, `generate.ts`, dan `format.ts`. Perhitungan tidak membaca React, DOM, atau penyimpanan.
 - React `key` mengikuti identitas data: ID bahan/resep, nama pilihan, URL foto unik, dan tanggal. ESLint menolak `key` yang hilang atau berasal dari indeks array.
 - Belum ada `React.memo`, `useMemo`, atau `useCallback` karena belum ada pengukuran yang membuktikan kebutuhan. Pencarian menu dijalankan di Web Worker agar loop kombinasi tidak memblokir interaksi halaman.
@@ -214,13 +217,11 @@ Stylesheet dimuat berurutan: `style.css` → `workspace.css` → `allianz.css` �
 - Tombol memakai `<button>`; perpindahan halaman memakai tautan. Tab hari mendukung panah, Home, End, serta fokus aktif. Dialog memakai elemen native `<dialog>` dengan fokus terkunci dan Escape. Preferensi reduced motion dihormati.
 - Teks dirender melalui JSX. ESLint menolak `dangerouslySetInnerHTML` dan pelanggaran Hooks; Prettier menjaga format konsisten.
 
-## Penyimpanan dan akun simulasi
+## Sesi dan penyimpanan
 
-Data dapur dipisahkan dengan kunci per akun. Migrasi format lama hanya memakai sesi lama yang aktif dan tidak menimpa data akun yang sudah dipisahkan. Pembacaan penyimpanan memvalidasi struktur, tanggal, resep, satuan, dan angka. Jika penulisan gagal, aplikasi memberi pesan; perubahan tetap ada dalam memori sampai halaman ditutup.
+Token akun disimpan di `sessionStorage`; data profil, stok, preferensi, rencana, dan centang belanja akun berada di backend dengan lingkup pemilik. Mode demo tetap memakai `localStorage` per akun demo. Pembacaan lokal memvalidasi struktur, tanggal, resep, satuan, dan angka; jika penulisan demo gagal, perubahan tetap ada dalam memori sampai halaman ditutup.
 
-Kredensial simulasi baru memakai PBKDF2 SHA-256, 600.000 iterasi, dan salt acak 16 byte. Hash SHA-256 lama dimigrasikan setelah login berhasil. Ini tetap simulasi lokal: hash dan pemisahan kunci tidak menggantikan autentikasi atau otorisasi server. Gunakan data dan kata sandi contoh.
-
-`pnpm test` mencakup perhitungan, batas input, penyimpanan rusak, kegagalan penyimpanan, migrasi, dan kompatibilitas kredensial. `pnpm test:e2e` menguji build produksi pada desktop 1440 px dan ponsel 390 px menggunakan Microsoft Edge. Jika Edge tidak tersedia, pasang Chromium dengan `pnpm exec playwright install chromium`, lalu hapus pengaturan `channel: 'msedge'` pada `playwright.config.ts`.
+`pnpm test` mencakup optimizer, batas input, penyimpanan demo, dan retrieval assistant. `pnpm test:backend` menguji autentikasi, isolasi dapur, validasi payload, seed, harga, dan nutrisi. `pnpm test:e2e` membangun aplikasi dan menjalankan API SQLite terpisah pada desktop 1440 px serta ponsel 390 px melalui Microsoft Edge. Jika Edge tidak tersedia, pasang Chromium dengan `pnpm exec playwright install chromium`, lalu hapus `channel: 'msedge'` pada `playwright.config.ts`.
 
 Arsip kode lama, screenshot pengembangan, paket deploy lama, dan cache lokal yang tidak aktif sudah dihapus. Direktori `dist/` merupakan hasil build yang digunakan pratinjau dan konfigurasi hosting. Hasil pengujian di `test-results/` akan dibuat kembali saat pengujian browser dijalankan. Pemeriksaan mencakup `src`, `tests`, konfigurasi, dan `scripts`.
 

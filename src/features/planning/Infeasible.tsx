@@ -44,8 +44,8 @@ export function Infeasible() {
         </h2>
         <p>
           {failure.error
-            ? 'Kombinasi bahan yang dihindari dan pola makan belum dapat dipenuhi oleh katalog simulasi kami. Tinjau preferensi atau stok. Alergi Anda tetap dikecualikan.'
-            : `Untuk ${form.people} orang selama ${form.days} hari, alternatif termurah dari katalog simulasi membutuhkan kisaran berikut setelah memakai stok Anda.`}
+            ? 'Kombinasi bahan yang dihindari dan pola makan belum dapat dipenuhi oleh katalog bahan dan resep. Tinjau preferensi atau stok. Alergi Anda tetap dikecualikan.'
+            : `Untuk ${form.people} orang selama ${form.days} hari, alternatif termurah dari katalog referensi membutuhkan kisaran berikut setelah memakai stok Anda.`}
         </p>
         {c && (
           <>
@@ -92,9 +92,9 @@ export function Infeasible() {
         </div>
       </div>
       <Note>
-        “Termurah” berarti kombinasi dengan batas atas biaya belanja terendah dari 9 resep simulasi
-        yang tersedia, sesuai porsi, stok, dan pengecualian Anda. Angka ini bukan harga pasar waktu
-        nyata.
+        “Termurah” berarti kombinasi dengan batas atas biaya belanja terendah dari enam resep katalog
+        yang tersedia, sesuai porsi, stok, dan pengecualian Anda. Harga merupakan estimasi berbasis
+        data referensi, bukan harga toko waktu nyata.
       </Note>
     </>
   );

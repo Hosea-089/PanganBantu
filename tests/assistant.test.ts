@@ -8,6 +8,10 @@ import {
   normalizeMealPlan,
   retrieveRecipes,
 } from '../server/assistant';
+import { installCatalog } from '../src/features/planning/catalog';
+import { testCatalog } from './catalog-fixture';
+
+installCatalog(testCatalog);
 
 type ProviderReply = { choices: { message: { content: string } }[] };
 type ProviderRequest = {

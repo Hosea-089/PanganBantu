@@ -12,6 +12,10 @@ import {
 import { read, write } from '../src/shared/storage/storage';
 import { migrateLegacyKitchen } from '../src/shared/storage/migrate';
 import { kitchenKey } from '../src/features/pantry/kitchen';
+import { installCatalog } from '../src/features/planning/catalog';
+import { testCatalog } from './catalog-fixture';
+
+installCatalog(testCatalog);
 
 function mockStorage() {
   const values = new Map<string, string>();

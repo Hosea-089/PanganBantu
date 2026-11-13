@@ -98,7 +98,7 @@ export function RecipeDialog({ d, s }: { d: number; s: number }) {
         ))}
       </div>
       <p className="muted" style={{ fontSize: 10 }}>
-        Informasi gizi simulasi, bukan target gizi pribadi atau diagnosis medis.
+        Informasi gizi dihitung dari data referensi, bukan target gizi pribadi atau diagnosis medis.
       </p>
       <Btn variant="outline" onClick={() => setModal(null)}>
         <ArrowLeft size={15} />

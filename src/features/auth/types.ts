@@ -15,3 +15,4 @@ export interface Account extends User {
   digest: string;
   salt?: string;
 }
+

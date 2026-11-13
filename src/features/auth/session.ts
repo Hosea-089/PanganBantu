@@ -22,6 +22,6 @@ export function useSession() {
 }
 export function useMember() {
   const state = useSession();
-  if (!state.user) throw new Error('Halaman ini memerlukan akun simulasi.');
+  if (!state.user) throw new Error('Halaman ini memerlukan sesi akun.');
   return { ...state, user: state.user };
 }

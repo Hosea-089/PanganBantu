@@ -5,6 +5,26 @@ types
 =============================
 */
 
+export interface PriceProvenance {
+  source: string;
+  sourceUrl: string;
+  region: string;
+  referenceQuantity: number;
+  referenceUnit: string;
+  observedFrom: string;
+  observedTo: string;
+  updatedAt: string;
+}
+
+export interface NutritionProvenance {
+  source: string;
+  sourceUrl: string;
+  sourceRecord: string;
+  servingSize: number;
+  servingUnit: string;
+  ediblePortionPercent: number;
+}
+
 export interface Ingredient {
   name: string;
   unit: 'g' | 'ml' | 'butir';
@@ -13,7 +33,16 @@ export interface Ingredient {
   icon: string;
   allergens?: string[];
   animal?: boolean;
+  priceSource?: PriceProvenance;
+  nutritionSource?: NutritionProvenance;
 }
+
+export interface Catalog {
+  ingredients: Record<string, Ingredient>;
+  recipes: Recipe[];
+  slots: string[];
+}
+
 
 export interface Recipe {
   id: string;
@@ -24,6 +53,7 @@ export interface Recipe {
   items: Record<string, number>;
   nutrition: [number, number, number, number, number];
   steps: string[];
+  servings?: number;
 }
 
 export interface Preferences {
@@ -85,4 +115,5 @@ export interface GenerationInput {
   form: PlanForm;
   stock: Stock;
   prefs: Preferences;
+  catalog: Catalog;
 }

@@ -10,8 +10,8 @@ import { useKitchen } from '@/features/pantry/kitchen';
 import { planHeaderImages } from '@/shared/layout/headerImages';
 import { PageHeader } from '@/shared/layout/PageHeader';
 import { WorkspaceBreadcrumb } from '@/shared/layout/WorkspaceBreadcrumb';
-import { read, write } from '@/shared/storage/storage';
-import { isAccounts } from '@/shared/storage/validators';
+import { api } from '@/shared/api';
+import { isUser } from '@/shared/storage/validators';
 import { useFeedback } from '@/shared/ui/feedback';
 import { Note } from '@/shared/ui/Note';
 import { ArrowRight, Check, Leaf } from 'lucide-react';
@@ -22,37 +22,37 @@ export function Profile() {
   const { user, setUser } = useMember();
   const { plan, stock } = useKitchen();
   const { notify } = useFeedback();
-  const [name, setName] = useState(user.name),
-    [error, setError] = useState('');
-  function save(e: FormEvent<HTMLFormElement>) {
+  const [name, setName] = useState(user.name);
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  async function save(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!name.trim()) {
-      setError('Nama pengguna tidak boleh kosong.');
+    if (saving) return;
+    const nextName = name.trim();
+    if (!nextName || nextName.length > 30) {
+      setError('Nama pengguna harus berisi 1–30 karakter.');
       return;
     }
-    if (!user.demo) {
-      const accounts = read('accounts', [], isAccounts);
-      if (
-        accounts.some(
-          (a) => a.email !== user.email && a.name.toLowerCase() === name.trim().toLowerCase(),
-        )
-      ) {
-        setError('Nama pengguna sudah dipakai. Pilih nama lain.');
-        return;
+    setSaving(true);
+    try {
+      let updated = { ...user, name: nextName };
+      if (!user.demo) {
+        const result: unknown = await api('/api/auth/me', {
+          method: 'PATCH',
+          body: { name: nextName },
+        });
+        if (!isUser(result)) throw new Error('Balasan profil server tidak valid.');
+        updated = result;
       }
-      if (
-        !write(
-          'accounts',
-          accounts.map((a) => (a.email === user.email ? { ...a, name: name.trim() } : a)),
-        )
-      ) {
-        setError('Profil belum dapat disimpan. Periksa penyimpanan peramban.');
-        return;
-      }
+      setUser(updated);
+      setName(updated.name);
+      setError('');
+      notify('Profil berhasil diperbarui.');
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : 'Profil belum dapat disimpan.');
+    } finally {
+      setSaving(false);
     }
-    setUser({ ...user, name: name.trim() });
-    setError('');
-    notify('Profil berhasil diperbarui.');
   }
   return (
     <>
@@ -69,7 +69,7 @@ export function Profile() {
             {user.name.slice(0, 2).toUpperCase()}
           </div>
           <h2>Informasi akun</h2>
-          <p className="panel-sub">Akun simulasi tersimpan di peramban ini.</p>
+          <p className="panel-sub">Akun disimpan di backend; demo tersimpan lokal.</p>
           <label className="field">
             <span>Nama pengguna</span>
             <input maxLength={30} value={name} onChange={(e) => setName(e.target.value)} />
@@ -77,16 +77,16 @@ export function Profile() {
           <label className="field">
             <span>Alamat email</span>
             <input type="email" value={user.email} disabled />
-            <small>Email digunakan sebagai identitas akun simulasi.</small>
+            <small>Email digunakan sebagai identitas akun.</small>
           </label>
           {error && (
             <div className="field-error" role="alert">
               {error}
             </div>
           )}
-          <button type="submit" className="btn primary">
+          <button type="submit" className="btn primary" disabled={saving}>
             <Check size={16} />
-            Simpan Profil
+            {saving ? 'Menyimpan…' : 'Simpan Profil'}
           </button>
         </form>
         <aside>
@@ -108,7 +108,7 @@ export function Profile() {
               </div>
               <div>
                 <span>Status akun</span>
-                <strong>{user.demo ? 'Demo' : 'Simulasi'}</strong>
+                <strong>{user.demo ? 'Demo' : 'Terhubung'}</strong>
               </div>
             </div>
             <a href="#/preferensi" className="text-link">
@@ -117,8 +117,7 @@ export function Profile() {
             </a>
           </div>
           <Note>
-            Data prototipe disimpan lokal di peramban, tidak dikirim ke layanan autentikasi atau
-            basis data.
+            Akun dan data dapur akun disimpan di backend. Data mode demo tetap lokal.
           </Note>
         </aside>
       </div>

@@ -10,3 +10,5 @@ playwright-report/
 .env.*
 !.env.example
 /docs/PERUBAHAN-FITUR.md
+/panganbantu.db
+/panganbantu-e2e.sqlite

@@ -13,8 +13,12 @@ test('credentials use unique salts and verify only the correct password', async 
 });
 
 test('legacy credentials remain readable for migration', async () => {
-  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('contoh123'));
-  const digest = Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, '0')).join('');
+  const digest = Array.from(
+    new Uint8Array(
+      await crypto.subtle.digest('SHA-256', new TextEncoder().encode('contoh123')),
+    ),
+    (byte) => byte.toString(16).padStart(2, '0'),
+  ).join('');
   assert.equal(
     await verifyPassword('contoh123', { name: 'Test', email: 'test@example.test', digest }),
     true,

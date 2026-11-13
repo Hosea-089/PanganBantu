@@ -80,7 +80,7 @@ export function StockDialog({ id }: { id?: string }) {
             ))}
           </select>
           {!matches.length && (
-            <small>Tidak ada bahan dalam katalog simulasi yang cocok. Coba kata kunci lain.</small>
+            <small>Tidak ada bahan dalam katalog yang cocok. Coba kata kunci lain.</small>
           )}
         </label>
         <label className="field">

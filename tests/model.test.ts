@@ -11,6 +11,10 @@ import {
   ingredients,
   recipes,
 } from '../src/features/planning/model';
+import { installCatalog } from '../src/features/planning/catalog';
+import { testCatalog } from './catalog-fixture';
+
+installCatalog(testCatalog);
 
 function generate(...args: Parameters<typeof generateRaw>) {
   const result = generateRaw(...args);
@@ -101,7 +105,7 @@ test('all durations produce exactly three meals daily', () => {
 });
 
 test('fractional pantry quantities preserve integer Rupiah totals', () => {
-  const stock = { beras: 175.13, wortel: 33.33, minyak: 3.17 };
+  const stock = { beras: 175.13, wortel: 33.33, tahu: 3.17 };
   const c = calculate(generate(defaultForm, stock, defaultPrefs).plan, stock);
   for (const key of ['min', 'max'] as const) {
     assert.ok(Number.isInteger(c[key]));

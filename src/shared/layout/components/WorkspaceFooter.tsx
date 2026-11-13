@@ -35,7 +35,7 @@ export function WorkspaceFooter() {
       </nav>
       <div className="workspace-footer-bottom">
         <span>© {new Date().getFullYear()} PanganBantu</span>
-        <span>Prototipe interaktif · Data simulasi</span>
+        <span>Prototipe interaktif · Data referensi</span>
       </div>
     </footer>
   );
